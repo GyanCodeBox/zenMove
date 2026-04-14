@@ -40,7 +40,12 @@ export default function PackerMoveDetail() {
                 subtitle="Manage Digital Twins for this move"
                 action={
                     <div className="flex gap-2">
-                        {(move.status === 'booked' || move.status === 'quoted') && (
+                        {move.status === 'quoted' && (
+                            <Button onClick={() => api.moves.updateStatus(move.id, 'booked').then(() => window.location.reload())}>
+                                Accept Booking
+                            </Button>
+                        )}
+                        {move.status === 'booked' && (
                             <Button onClick={() => api.moves.updateStatus(move.id, 'loading').then(() => window.location.reload())}>
                                 Begin Loading
                             </Button>
