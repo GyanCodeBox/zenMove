@@ -10,6 +10,7 @@ export default function ScanPage() {
     const [loading, setLoading] = useState(false)
     const [move, setMove] = useState<Move | null>(null)
     const [qrInput, setQrInput] = useState('')
+    const [condition, setCondition] = useState('good')
     const [scannedLogs, setScannedLogs] = useState<{ qr: string, type: string, time: string }[]>([])
     const inputRef = useRef<HTMLInputElement>(null)
 
@@ -29,7 +30,8 @@ export default function ScanPage() {
         setLoading(true)
         const qrCopy = qrInput.toUpperCase()
         try {
-            await api.moves.scan(id, qrCopy)
+            const payloadCondition = move?.status === 'delivered' ? condition : undefined
+            await api.moves.scan(id, qrCopy, payloadCondition)
             setScannedLogs(prev => [{ qr: qrCopy, type: 'success', time: new Date().toLocaleTimeString() }, ...prev])
             setQrInput('')
         } catch (err: any) {
@@ -55,6 +57,22 @@ export default function ScanPage() {
             />
 
             <Card className="p-6 border-teal-500 ring-2 ring-teal-500/20 mb-6">
+                {move?.status === 'delivered' && (
+                    <div className="flex gap-2 mb-4 justify-center">
+                        {['good', 'damaged', 'missing'].map(c => (
+                            <button
+                                key={c}
+                                type="button"
+                                tabIndex={-1}
+                                onClick={() => { setCondition(c); inputRef.current?.focus() }}
+                                className={`px-4 py-1.5 rounded-full text-xs font-semibold capitalize border transition-all ${condition === c ? 'shadow-md' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'}`}
+                                style={condition === c ? { background: 'var(--navy)', borderColor: 'var(--navy)', color: 'white' } : {}}
+                            >
+                                {c}
+                            </button>
+                        ))}
+                    </div>
+                )}
                 <form onSubmit={handleScan} className="flex gap-2">
                     <div className="flex-1">
                         <input

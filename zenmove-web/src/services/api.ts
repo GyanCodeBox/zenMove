@@ -54,8 +54,8 @@ export const api = {
       request<Move>('POST', '/moves', payload),
     updateStatus: (id: string, status: string) =>
       request<Move>('PATCH', `/moves/${id}/status`, { status }),
-    scan: (id: string, qr_code: string) =>
-      request<Item>('POST', `/moves/${id}/scan`, { qr_code }),
+    scan: (id: string, qr_code: string, condition_post?: string) =>
+      request<Item>('POST', `/moves/${id}/scan`, { qr_code, condition_post }),
   },
 
   // ── Items ────────────────────────────────────────────────────────────

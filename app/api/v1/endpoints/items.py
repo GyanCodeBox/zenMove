@@ -160,7 +160,7 @@ async def record_scan(
     This drives the 0% variance metric: every loaded item must be
     scanned again at destination.
     """
-    item = await ItemService(db).record_scan_event(move_id, payload.qr_code)
+    item = await ItemService(db).record_scan_event(move_id, payload.qr_code, payload.condition_post)
     return SuccessResponse(data=item)
 
 
