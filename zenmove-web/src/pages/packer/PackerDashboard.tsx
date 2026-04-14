@@ -18,8 +18,8 @@ export default function PackerDashboard() {
         api.moves.list(1)
             .then((res: any) => {
                 const raw = Array.isArray(res) ? res : res.data || []
-                // Filter out completed ones to keep dashboard clean
-                setMoves(raw.filter((m: Move) => ['booked', 'loading', 'in_transit'].includes(m.status)))
+                // Filter out completed ones to keep dashboard clean (but keep 'delivered' for unloading!)
+                setMoves(raw.filter((m: Move) => ['booked', 'loading', 'in_transit', 'delivered'].includes(m.status)))
             })
             .catch(console.error)
             .finally(() => setLoading(false))

@@ -26,7 +26,7 @@ from app.core.exceptions import (
     PhotoIntegrityError,
     ValidationError,
 )
-from app.models.item import Item, TagTier
+from app.models.item import Item, TagTier, ItemConditionPost
 from app.models.move import Move, MoveStatus
 from app.schemas.item import (
     ItemCreateRequest,
@@ -224,7 +224,7 @@ class ItemService:
     # ── 4. Record scan event (loading / unloading) ─────────────────────
 
     async def record_scan_event(
-        self, move_id: UUID, qr_code: str
+        self, move_id: UUID, qr_code: str, condition_post: ItemConditionPost | None = None
     ) -> ItemResponse:
         """
         Called when a packer scans an item at loading or unloading.
@@ -265,7 +265,11 @@ class ItemService:
                 )
             if item.is_unloaded:
                 raise ValidationError(f"Item '{item.name}' is already marked as unloaded.")
+            if not condition_post:
+                raise ValidationError("Must provide a destination condition (good/damaged/missing) during unload scan.")
             item.is_unloaded = True
+            item.unloaded_at = now
+            item.condition_post = condition_post
             item.unloaded_at = now
 
         else:

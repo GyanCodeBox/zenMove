@@ -72,6 +72,7 @@ class ScanEventRequest(ZenBaseModel):
     The event type is inferred from the move status on the server.
     """
     qr_code: str
+    condition_post: ItemConditionPost | None = None
 
     @field_validator("qr_code")
     @classmethod
