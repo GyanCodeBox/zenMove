@@ -52,7 +52,7 @@ def upload_file_bytes(
     bucket = bucket or settings.s3_bucket_photos
 
     # Local development mocking when AWS keys aren't provided
-    if not settings.aws_access_key_id or settings.aws_access_key_id in ("aws_access_key_id_here", "test", ""):
+    if not settings.aws_access_key_id or settings.aws_access_key_id in ("aws_access_key_id_here", "your-access-key", "test", ""):
         return key
 
     s3 = _get_s3_client()
@@ -88,8 +88,10 @@ def generate_signed_url(
     bucket = bucket or settings.s3_bucket_photos
     expiry = expiry or settings.s3_signed_url_expiry
 
-    if not settings.aws_access_key_id or settings.aws_access_key_id in ("aws_access_key_id_here", "test", ""):
-        return f"https://zenmove-local-mock.s3.amazonaws.com/{key}?expires={expiry}"
+    if not settings.aws_access_key_id or settings.aws_access_key_id in ("aws_access_key_id_here", "your-access-key", "test", ""):
+        if key.endswith(".pdf"):
+            return "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+        return "https://placehold.co/600x400/png?text=ZenMove+Mock+Photo"
 
     s3 = _get_s3_client()
     try:
@@ -106,7 +108,7 @@ def delete_object(key: str, bucket: str | None = None) -> None:
     """Remove an object from S3 (used in cleanup / test teardown)."""
     bucket = bucket or settings.s3_bucket_photos
 
-    if not settings.aws_access_key_id or settings.aws_access_key_id in ("aws_access_key_id_here", "test", ""):
+    if not settings.aws_access_key_id or settings.aws_access_key_id in ("aws_access_key_id_here", "your-access-key", "test", ""):
         return
 
     s3 = _get_s3_client()
