@@ -55,7 +55,7 @@ export default function AuthPage() {
       style={{ background: 'var(--navy)' }}
     >
       {/* Left panel — branding */}
-      <div className="hidden lg:flex flex-col justify-between w-[480px] shrink-0 p-12 relative">
+      <div className="hidden lg:flex flex-col w-[480px] shrink-0 p-12 relative">
         {/* Decorative circles */}
         <div
           className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-10"
@@ -66,37 +66,39 @@ export default function AuthPage() {
           style={{ background: 'var(--amber)' }}
         />
 
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-16">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center font-display font-bold text-white"
-              style={{ background: 'var(--amber)' }}
-            >
-              ZM
-            </div>
-            <span className="font-display text-white font-semibold text-lg">ZenMove</span>
+        {/* Logo at the top */}
+        <div className="relative z-10 flex items-center gap-3 mb-auto">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center font-display font-bold text-white"
+            style={{ background: 'var(--amber)' }}
+          >
+            ZM
           </div>
+          <span className="font-display text-white font-semibold text-lg">ZenMove</span>
+        </div>
 
+        {/* Messaging content grouped together */}
+        <div className="relative z-10 mt-12 pb-8">
           <h2 className="font-display text-white text-4xl font-semibold leading-tight mb-6">
             Move with<br />
             <span style={{ color: 'var(--amber)' }}>absolute trust.</span>
           </h2>
-          <p className="font-body text-white/50 text-base leading-relaxed">
+          <p className="font-body text-white/50 text-base leading-relaxed mb-12">
             Every item tagged. Every rupee in escrow.<br />Every move provably honest.
           </p>
-        </div>
 
-        <div className="relative z-10 space-y-4">
-          {[
-            { icon: '🔐', text: 'QR-verified digital twin for every item' },
-            { icon: '💰', text: 'Smart escrow — pay only on safe delivery' },
-            { icon: '📸', text: 'Tamper-evident photo proof with SHA-256' },
-          ].map(({ icon, text }) => (
-            <div key={text} className="flex items-center gap-3">
-              <span className="text-lg">{icon}</span>
-              <p className="font-body text-white/60 text-sm">{text}</p>
-            </div>
-          ))}
+          <div className="space-y-4">
+            {[
+              { icon: '🔐', text: 'QR-verified digital twin for every item' },
+              { icon: '💰', text: 'Smart escrow — pay only on safe delivery' },
+              { icon: '📸', text: 'Tamper-evident photo proof with SHA-256' },
+            ].map(({ icon, text }) => (
+              <div key={text} className="flex items-center gap-3">
+                <span className="text-lg">{icon}</span>
+                <p className="font-body text-white/60 text-sm">{text}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
