@@ -49,6 +49,24 @@ class Settings(BaseSettings):
     default_page_size: int = 20
     max_page_size: int = 100
 
+    # ── Redis ──────────────────────────────────────────────────────────────────
+    redis_url: str = "redis://localhost:6379/0"
+
+    # ── NIC E-Way Bill ─────────────────────────────────────────────────────────
+    nic_sandbox: bool = True
+    nic_api_url: str = "https://einvoice1-uat.nic.in/ewaybill/apiv1"
+    nic_gstin: str = ""
+    nic_username: str = ""
+    nic_password: str = ""
+
+    # ── Razorpay (mock in Phase 2) ─────────────────────────────────────────────
+    razorpay_key_id: str = ""
+    razorpay_key_secret: str = ""
+    razorpay_webhook_secret: str = ""
+
+    # ── Platform fee ───────────────────────────────────────────────────────────
+    platform_fee_pct: float = 10.0
+
     @property
     def is_production(self) -> bool:
         return self.app_env == "production"

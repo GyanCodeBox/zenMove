@@ -7,10 +7,13 @@ Add new endpoint modules here as they are created.
 
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import auth, items, moves
+from app.api.v1.endpoints import auth, items, moves, escrow, eway_bill, disputes
 
 api_router = APIRouter(prefix="/api/v1")
 
 api_router.include_router(auth.router)
 api_router.include_router(moves.router)
 api_router.include_router(items.router)
+api_router.include_router(escrow.router)
+api_router.include_router(eway_bill.router)
+api_router.include_router(disputes.router)

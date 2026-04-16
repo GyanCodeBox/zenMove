@@ -8,6 +8,13 @@ import MoveDetailPage from './pages/MoveDetailPage'
 import ItemsPage from './pages/ItemsPage'
 import ManifestPage from './pages/ManifestPage'
 
+// Phase 2
+import PaymentCheckoutPage from './pages/phase2/PaymentCheckoutPage'
+import EscrowTrackerPage   from './pages/phase2/EscrowTrackerPage'
+import OTPDeliveryPage     from './pages/phase2/OTPDeliveryPage'
+import DisputePage         from './pages/phase2/DisputePage'
+import EWayBillPage        from './pages/phase2/EWayBillPage'
+
 // Packer UI
 import PackerDashboard from './pages/packer/PackerDashboard'
 import PackerMoveDetail from './pages/packer/PackerMoveDetail'
@@ -31,12 +38,20 @@ export default function App() {
           <Route path="/moves/:id/items" element={<ItemsPage />} />
           <Route path="/moves/:id/manifest" element={<ManifestPage />} />
 
+          {/* Phase 2: Customer */}
+          <Route path="/moves/:id/payment"      element={<PaymentCheckoutPage />} />
+          <Route path="/moves/:id/escrow"       element={<EscrowTrackerPage />}   />
+          <Route path="/moves/:id/otp"          element={<OTPDeliveryPage />}     />
+          <Route path="/moves/:id/dispute/new"  element={<DisputePage />}         />
+          <Route path="/moves/:id/disputes"     element={<DisputePage />}         />
+
           {/* Packer */}
           <Route path="/packer" element={<PackerDashboard />} />
           <Route path="/packer/moves/:id" element={<PackerMoveDetail />} />
           <Route path="/packer/moves/:id/items/new" element={<AddItemPage />} />
           <Route path="/packer/items/:itemId" element={<PackerItemDetail />} />
           <Route path="/packer/moves/:id/scan" element={<ScanPage />} />
+          <Route path="/packer/moves/:id/eway-bill" element={<EWayBillPage />} />
         </Route>
 
         {/* Fallback */}

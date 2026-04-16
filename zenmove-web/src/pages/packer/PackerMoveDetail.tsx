@@ -68,6 +68,9 @@ export default function PackerMoveDetail() {
                         <Button onClick={() => navigate(`/moves/${move.id}/manifest`)} variant="secondary">
                             <FileText size={16} /> Manifest
                         </Button>
+                        <Button onClick={() => navigate(`/packer/moves/${move.id}/eway-bill`)} variant="secondary">
+                            E-Way Bill
+                        </Button>
                     </div>
                 }
             />
