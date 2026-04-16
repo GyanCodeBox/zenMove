@@ -8,7 +8,7 @@ import {
 import { formatDate, formatCurrency, STATUS_LABEL, STATUS_NEXT } from '../utils'
 import {
   MapPin, Calendar, Package, FileText,
-  ChevronRight, ArrowLeft, CheckCircle2, Circle
+  ChevronRight, ArrowLeft, CheckCircle2, Circle, IndianRupee, Shield
 } from 'lucide-react'
 
 const TIMELINE: MoveStatus[] = [
@@ -211,6 +211,22 @@ export default function MoveDetailPage() {
         >
           <FileText size={15} /> Manifest
         </Button>
+        <Button variant="secondary" onClick={() => navigate(`/moves/${move.id}/payment`)}>
+          <IndianRupee size={15} /> Payment
+        </Button>
+        <Button variant="secondary" onClick={() => navigate(`/moves/${move.id}/escrow`)}>
+          <Shield size={15} /> Escrow
+        </Button>
+        {move.status === 'in_transit' && (
+          <Button variant="primary" onClick={() => navigate(`/moves/${move.id}/otp`)}>
+            Confirm Delivery
+          </Button>
+        )}
+        {['delivered','disputed'].includes(move.status) && (
+          <Button variant="secondary" onClick={() => navigate(`/moves/${move.id}/disputes`)}>
+            Disputes
+          </Button>
+        )}
       </div>
     </div>
   )
