@@ -14,6 +14,9 @@ from app.core.exceptions import ForbiddenError, NotFoundError
 from app.models.move import Move, MoveStatus
 from app.models.item import Item
 from app.models.notification import Notification
+from app.services.escrow_service import EscrowService
+from app.services.eway_bill_service import EWayBillService
+from app.schemas.eway_bill import EWayBillGenerateRequest
 from app.schemas.common import PaginationParams
 from app.schemas.move import MoveCreateRequest, MoveResponse
 
@@ -117,13 +120,37 @@ class MoveService:
 
         # Automatically generate E-Way bill on dispatch
         if new_status == MoveStatus.in_transit and not move.eway_bill_no:
-            import random
-            import string
-            suffix = ''.join(random.choices(string.digits, k=12))
-            move.eway_bill_no = f"EW-{suffix}"
+            try:
+                ewb_svc = EWayBillService(self.db)
+                await ewb_svc.generate(move_id, EWayBillGenerateRequest(
+                    vehicle_no="KA-01-ZM-1234", # Mock vehicle
+                    distance_km=250, # Mock distance
+                    total_value=float(move.quote_amount)
+                ))
+            except Exception as e:
+                print(f"WARN: Auto E-Way Bill generation failed: {e}")
+                # Fallback to simple number if service fails
+                import random
+                import string
+                suffix = ''.join(random.choices(string.digits, k=12))
+                move.eway_bill_no = f"EW-{suffix}"
+
 
         await self.db.flush()
         await self.db.refresh(move)
+
+        # Trigger Escrow Releases
+        escrow_svc = EscrowService(self.db)
+        if new_status == MoveStatus.in_transit:
+            try:
+                await escrow_svc.release_m2(move_id)
+            except Exception as e:
+                print(f"WARN: M2 Escrow release failed: {e}")
+        elif new_status == MoveStatus.completed:
+            try:
+                await escrow_svc.release_m4(move_id)
+            except Exception as e:
+                print(f"WARN: M4 Escrow release failed: {e}")
 
         # Send Notifications
         if new_status == MoveStatus.loading:
@@ -176,6 +203,13 @@ class MoveService:
             # Clear OTP after use
             move.delivery_otp_hash = None
             await self.db.flush()
+
+            # Trigger M3 Escrow Release
+            try:
+                await EscrowService(self.db).release_m3(move_id)
+            except Exception as e:
+                print(f"WARN: M3 Escrow release failed: {e}")
+
             return True
             
         return False
