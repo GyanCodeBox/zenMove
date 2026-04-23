@@ -74,6 +74,11 @@ export default function App() {
                 component={require('./src/screens/PhotoCaptureScreen').default} 
                 options={{ title: 'Digital Twin Photo', headerTintColor: 'white', headerStyle: { backgroundColor: 'black' } }}
               />
+              <Stack.Screen 
+                name="DispatchSummary" 
+                component={require('./src/screens/DispatchSummaryScreen').default} 
+                options={{ title: 'Manifest Audit', headerBackTitle: 'Back' }}
+              />
             </>
           ) : (
             // User IS logged in AND is a Customer

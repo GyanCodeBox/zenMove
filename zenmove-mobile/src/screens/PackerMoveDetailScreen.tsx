@@ -161,6 +161,16 @@ export default function PackerMoveDetailScreen({ route, navigation }: any) {
             <Text style={{color: '#94A3B8', textAlign: 'center'}}>No items added to manifest yet.</Text>
           </View>
         }
+        ListFooterComponent={
+          (move?.status === 'loading' && items.length > 0) ? (
+            <TouchableOpacity 
+              style={[styles.payBtn, { backgroundColor: '#D97706', marginBottom: 40 }]}
+              onPress={() => navigation.navigate('DispatchSummary', { moveId, items })}
+            >
+              <Text style={styles.btnText}>Review & Dispatch Truck</Text>
+            </TouchableOpacity>
+          ) : null
+        }
       />
     </SafeAreaView>
   );
@@ -182,5 +192,6 @@ const styles = StyleSheet.create({
   photoBtn: { backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155', padding: 8, borderRadius: 8, alignItems: 'center', minWidth: 50 },
   photoLabel: { color: '#94A3B8', fontSize: 10, marginTop: 2, fontWeight: 'bold' },
   btnText: { color: 'white', fontWeight: 'bold' },
+  payBtn: { backgroundColor: '#D97706', padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 16 },
   emptyState: { alignItems: 'center', marginTop: 40 }
 });
