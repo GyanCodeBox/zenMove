@@ -39,15 +39,25 @@ export default function ScannerScreen({ route, navigation }: any) {
         await api.post(`/moves/${moveId}/scan`, { qr_code: data, condition_post: 'good' });
         alert(`Successfully UNLOADED item ${data}. Condition: GOOD`);
         setTimeout(() => setScanned(false), 2000); 
+      } else if (mode === 'customer_audit' && moveId) {
+        // Just look up the item and navigate to the audit screen
+        const res = await api.get(`/items/by-qr/${data}`);
+        const item = res.data.data;
+        if (item.move_id !== moveId) {
+            alert("This item doesn't belong to your current move.");
+            setTimeout(() => setScanned(false), 2000);
+            return;
+        }
+        navigation.navigate('ItemAudit', { item });
+        setScanned(false);
       }
     } catch (err: any) {
-      const detail = err.response?.data?.detail;
-      let msg = "Scan verification failed.";
+      const detail = err?.response?.data?.detail;
+      let msg = err.message || "Scan verification failed.";
       
       if (typeof detail === 'string') {
         msg = detail;
       } else if (Array.isArray(detail)) {
-        // Extract the human-readable 'msg' from the first validation error
         msg = detail[0]?.msg || JSON.stringify(detail);
       } else if (detail) {
         msg = JSON.stringify(detail);

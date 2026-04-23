@@ -154,6 +154,15 @@ export default function CustomerMoveDetailScreen({ route, navigation }: any) {
               <Text style={styles.btnText}>{actionLoading ? "Processing..." : "Packer Arrived: Start Job"}</Text>
             </TouchableOpacity>
           )}
+
+          {(move.status === 'delivered' || move.status === 'completed') && (
+            <TouchableOpacity 
+              style={[styles.payBtn, {backgroundColor: '#3B82F6', marginTop: 24}]} 
+              onPress={() => navigation.navigate('Scanner', { mode: 'customer_audit', moveId })}
+            >
+              <Text style={styles.btnText}>Scan QR to Audit Item</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <Text style={styles.sectionTitle}>Financial Trust</Text>

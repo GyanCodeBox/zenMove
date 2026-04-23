@@ -69,6 +69,15 @@ async def list_items(
 # ── Get single item ─────────────────────────────────────────────────────────
 
 @router.get(
+    "/items/by-qr/{qr_code}",
+    response_model=SuccessResponse[ItemResponse],
+    summary="Get a single item by its assigned QR code sticker",
+)
+async def get_item_by_qr(qr_code: str, db: DBSession, user_id: CurrentUserID):
+    item = await ItemService(db).get_item_by_qr(qr_code)
+    return SuccessResponse(data=item)
+
+@router.get(
     "/items/{item_id}",
     response_model=SuccessResponse[ItemResponse],
     summary="Get a single item by ID",

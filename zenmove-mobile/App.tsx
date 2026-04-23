@@ -104,6 +104,16 @@ export default function App() {
                 component={require('./src/screens/EscrowLedgerScreen').default} 
                 options={{ title: 'Asset Vault Ledger', headerBackTitle: 'Back' }}
               />
+              <Stack.Screen 
+                name="Scanner" 
+                component={ScannerScreen} 
+                options={{ title: 'Audit Scanner', headerBackTitle: 'Back' }}
+              />
+              <Stack.Screen 
+                name="ItemAudit" 
+                component={require('./src/screens/ItemAuditScreen').default} 
+                options={{ title: 'Digital Twin Audit', headerBackTitle: 'Scan' }}
+              />
             </>
           )}
         </Stack.Navigator>

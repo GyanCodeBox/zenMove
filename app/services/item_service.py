@@ -362,6 +362,13 @@ class ItemService:
         item = await self._fetch_item(item_id)
         return _to_response(item)
 
+    async def get_item_by_qr(self, qr_code: str) -> ItemResponse:
+        result = await self.db.execute(select(Item).where(Item.qr_code == qr_code))
+        item = result.scalar_one_or_none()
+        if not item:
+            raise NotFoundError(f"No item found bound to QR Code {qr_code}")
+        return _to_response(item)
+
     async def list_items(self, move_id: UUID) -> list[ItemResponse]:
         result = await self.db.execute(
             select(Item)
