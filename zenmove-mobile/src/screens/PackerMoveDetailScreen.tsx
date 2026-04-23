@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Linking } from 'react-native';
 import { Package, ScanBarcode, Camera, Trash2 } from 'lucide-react-native';
 import { api } from '../api/client';
 import { Item, Move } from '../types';
@@ -90,6 +90,18 @@ export default function PackerMoveDetailScreen({ route, navigation }: any) {
     }
   };
 
+  const handleViewManifest = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get(`/moves/${moveId}/manifest`);
+      Linking.openURL(res.data.data.manifest_url);
+    } catch (e) {
+      alert('Failed to load PDF');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const renderItemCard = ({ item }: { item: Item }) => (
     <View style={styles.itemCard}>
       <View style={{ flex: 1 }}>
@@ -150,11 +162,22 @@ export default function PackerMoveDetailScreen({ route, navigation }: any) {
         <Text style={styles.title}>Manifest / Items</Text>
         <Text style={styles.subtitle}>{move?.origin_city_code} → {move?.dest_city_code}</Text>
         
-        {move?.status === 'booked' && (
-          <TouchableOpacity style={[styles.addBtn, {marginTop: 16, backgroundColor: '#22C55E'}]} onPress={handleStartLoading}>
-            <Text style={{color: 'white', fontWeight: 'bold'}}>Packer Arrival: Start Job</Text>
-          </TouchableOpacity>
-        )}
+        <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
+          {move?.status === 'booked' && (
+            <TouchableOpacity style={[styles.addBtn, {marginTop: 16, backgroundColor: '#22C55E'}]} onPress={handleStartLoading}>
+              <Text style={{color: 'white', fontWeight: 'bold'}}>Packer Arrival: Start Job</Text>
+            </TouchableOpacity>
+          )}
+
+          {(move?.status === 'loading' || move?.status === 'in_transit' || move?.status === 'delivered') && (
+            <TouchableOpacity 
+              style={[styles.addBtn, {marginTop: 16, backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155'}]} 
+              onPress={handleViewManifest}
+            >
+              <Text style={{color: '#94A3B8', fontWeight: 'bold'}}>View PDF Manifest</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       {move?.status === 'loading' && (
@@ -176,7 +199,7 @@ export default function PackerMoveDetailScreen({ route, navigation }: any) {
         <View style={[styles.addItemSection, { backgroundColor: '#1E293B', borderBottomColor: '#22C55E', borderBottomWidth: 2 }]}>
           <TextInput 
             style={styles.input} 
-            placeholder="Enter Delivery OTP from Customer" 
+            placeholder="Enter Delivery OTP" 
             placeholderTextColor="#64748B"
             value={otpInput}
             onChangeText={setOtpInput}
@@ -201,7 +224,7 @@ export default function PackerMoveDetailScreen({ route, navigation }: any) {
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Package color="#64748B" size={48} style={{ marginBottom: 16 }} />
-            <Text style={{color: '#94A3B8', textAlign: 'center'}}>No items added to manifest yet.</Text>
+            <Text style={{color: '#94A3B8', textAlign: 'center'}}>No items added yet.</Text>
           </View>
         }
         ListFooterComponent={
@@ -220,18 +243,16 @@ export default function PackerMoveDetailScreen({ route, navigation }: any) {
               >
                 <Text style={styles.btnText}>Scan Out / Unload Items</Text>
               </TouchableOpacity>
-
-              {/* Only show Finalize if all items are unloaded */}
               {items.every(i => i.is_unloaded) && (
                 <TouchableOpacity 
                   style={[styles.payBtn, { backgroundColor: '#D97706', marginBottom: 40 }]}
                   onPress={async () => {
                     try {
                       await api.patch(`/moves/${moveId}/status`, { status: 'completed' });
-                      alert('MOVE COMPLETED! Thank you for the hard work.');
+                      alert('MOVE COMPLETED!');
                       navigation.navigate('PackerDashboard');
-                    } catch (e: any) {
-                      alert('Failed to complete move');
+                    } catch (e) {
+                      alert('Failed to close move');
                     }
                   }}
                 >

@@ -95,9 +95,14 @@ export default function App() {
                 options={{ title: 'New Reservation', headerBackTitle: 'Back' }}
               />
               <Stack.Screen 
-                name="MoveDetail" 
+                name="CustomerMoveDetail" 
                 component={require('./src/screens/CustomerMoveDetailScreen').default} 
-                options={{ title: 'Move Details', headerBackTitle: 'Back' }}
+                options={{ title: 'Move Tracker' }}
+              />
+              <Stack.Screen 
+                name="EscrowLedger" 
+                component={require('./src/screens/EscrowLedgerScreen').default} 
+                options={{ title: 'Asset Vault Ledger', headerBackTitle: 'Back' }}
               />
             </>
           )}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator, Linking } from 'react-native';
 import { api } from '../api/client';
 import { Move, EscrowStatus } from '../types';
 import { ShieldCheck } from 'lucide-react-native';
@@ -73,6 +73,23 @@ export default function CustomerMoveDetailScreen({ route, navigation }: any) {
       setDeliveryOtp(res.data.data);
     } catch (err: any) {
       alert('Failed to generate OTP');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleViewManifest = async () => {
+    try {
+      setActionLoading(true);
+      const res = await api.get(`/moves/${moveId}/manifest`);
+      const url = res.data.data.manifest_url;
+      if (url) {
+        Linking.openURL(url);
+      } else {
+        alert('Manifest not ready yet.');
+      }
+    } catch (err) {
+      alert('Failed to load manifest');
     } finally {
       setActionLoading(false);
     }
@@ -169,6 +186,13 @@ export default function CustomerMoveDetailScreen({ route, navigation }: any) {
           </View>
         )}
 
+        <TouchableOpacity 
+          style={[styles.payBtn, { backgroundColor: '#0F172A', borderColor: '#334155', borderWidth: 1, marginTop: 12 }]} 
+          onPress={() => navigation.navigate('EscrowLedger', { moveId })}
+        >
+          <Text style={[styles.btnText, { color: '#94A3B8' }]}>View Financial Audit & Ledger</Text>
+        </TouchableOpacity>
+
         {move.status === 'in_transit' && (
           <View style={[styles.card, { marginTop: 24, backgroundColor: '#1E293B', borderColor: '#3B82F6', borderWidth: 1 }]}>
             <Text style={styles.title}>Proof of Delivery</Text>
@@ -188,6 +212,14 @@ export default function CustomerMoveDetailScreen({ route, navigation }: any) {
                 <Text style={styles.btnText}>Generate Delivery OTP</Text>
               </TouchableOpacity>
             )}
+
+            <TouchableOpacity 
+              style={[styles.payBtn, { backgroundColor: '#1E293B', borderColor: '#3B82F6', borderWidth: 1, marginTop: 12 }]} 
+              onPress={handleViewManifest}
+              disabled={actionLoading}
+            >
+              <Text style={[styles.btnText, { color: '#3B82F6' }]}>View Digital Manifest (PDF)</Text>
+            </TouchableOpacity>
           </View>
         )}
 

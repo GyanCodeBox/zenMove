@@ -13,6 +13,7 @@ from sqlalchemy.orm import selectinload
 from app.core.exceptions import ForbiddenError, NotFoundError
 from app.models.move import Move, MoveStatus
 from app.models.item import Item
+from app.models.notification import Notification
 from app.schemas.common import PaginationParams
 from app.schemas.move import MoveCreateRequest, MoveResponse
 
@@ -123,7 +124,23 @@ class MoveService:
 
         await self.db.flush()
         await self.db.refresh(move)
+
+        # Send Notifications
+        if new_status == MoveStatus.loading:
+            await self._notify(move.customer_id, move.id, "Packer Arrived", "Your packer has arrived and is starting the loading process.")
+        elif new_status == MoveStatus.in_transit:
+            await self._notify(move.customer_id, move.id, "Truck Dispatched", f"Items are in transit. E-Way Bill {move.eway_bill_no} generated.")
+        elif new_status == MoveStatus.delivered:
+            await self._notify(move.customer_id, move.id, "Truck Arrived", "The truck is at your destination. Generate OTP to start unloading.")
+        elif new_status == MoveStatus.completed:
+            await self._notify(move.customer_id, move.id, "Move Finalized", "All items delivered safely. Thank you for choosing ZenMove!")
+
         return _to_response(move, len(move.items))
+
+    async def _notify(self, user_id: UUID, move_id: UUID, title: str, message: str):
+        notif = Notification(user_id=user_id, move_id=move_id, title=title, message=message)
+        self.db.add(notif)
+        await self.db.flush()
 
     # ── Proof of Delivery (OTP) ─────────────────────────────────────────
 

@@ -4,15 +4,18 @@ app/api/v1/endpoints/moves.py
 Move CRUD and status transition endpoints.
 """
 
+from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
 
 from app.core.dependencies import CurrentUserID, DBSession, PaginationDep
 from app.models.move import MoveStatus
 from app.schemas.common import PaginatedResponse, SuccessResponse
 from app.schemas.move import MoveCreateRequest, MoveResponse, MoveStatusUpdateRequest, OTPVerifyRequest
+from app.schemas.item import ManifestSummary
 from app.services.move_service import MoveService
+from app.services.item_service import ItemService
 
 router = APIRouter(prefix="/moves", tags=["Moves"])
 
@@ -103,3 +106,17 @@ async def verify_otp(
 ):
     valid = await MoveService(db).verify_delivery_otp(move_id, payload.otp)
     return SuccessResponse(data=valid)
+
+
+@router.get(
+    "/{move_id}/manifest",
+    response_model=SuccessResponse[ManifestSummary],
+    summary="Generate and get the PDF manifest report",
+)
+async def get_move_manifest(
+    move_id: UUID,
+    db: DBSession,
+    user_id: CurrentUserID,
+):
+     summary = await ItemService(db).generate_manifest(move_id)
+     return SuccessResponse(data=summary)
