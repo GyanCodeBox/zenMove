@@ -168,10 +168,6 @@ export default function CustomerMoveDetailScreen({ route, navigation }: any) {
             <Text style={styles.value}>₹{escrow.vault_balance}</Text>
             <Text style={[styles.label, {marginTop: 8}]}>Released to Packer</Text>
             <Text style={styles.value}>₹{escrow.released_amount}</Text>
-
-            <TouchableOpacity style={styles.payBtn} onPress={() => alert('OTP / Release milestone functionality coming next!')}>
-              <Text style={styles.btnText}>Release M3 (Delivery OTP)</Text>
-            </TouchableOpacity>
           </View>
         ) : (
           <View style={styles.card}>
