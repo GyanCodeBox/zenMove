@@ -77,10 +77,11 @@ class MoveService:
         pagination: PaginationParams,
         status: MoveStatus | None = None,
     ) -> tuple[list[MoveResponse], int]:
+        from sqlalchemy import or_
         query = (
             select(Move)
             .options(selectinload(Move.items))
-            .where(Move.customer_id == requester_id)
+            .where(or_(Move.customer_id == requester_id, Move.vendor_id == requester_id))
             .order_by(Move.created_at.desc())
         )
         if status:

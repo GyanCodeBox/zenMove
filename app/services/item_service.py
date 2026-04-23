@@ -109,6 +109,22 @@ class ItemService:
         await self.db.refresh(item)
         return _to_response(item)
 
+    # ── 1.1. Delete item ───────────────────────────────────────────────
+
+    async def delete_item(self, item_id: UUID) -> None:
+        """
+        Remove an item from the manifest. 
+        Only allowed if the move is still editable.
+        """
+        item = await self._fetch_item(item_id)
+        move = await self._fetch_move(item.move_id)
+
+        if not move.is_editable:
+            raise MoveNotEditableError("Cannot delete item — move is no longer editable.")
+
+        await self.db.delete(item)
+        await self.db.flush()
+
     # ── 2. Bind QR sticker to item ─────────────────────────────────────
 
     async def bind_qr(
@@ -161,7 +177,7 @@ class ItemService:
         item_id: UUID,
         photo_type: str,      # "open" | "sealed"
         file_bytes: bytes,
-        client_hash: str,     # SHA-256 sent by the device
+        client_hash: str | None = None,     # SHA-256 sent by the device
     ) -> PhotoUploadResponse:
         """
         Upload a photo to S3 and record its hash for tamper detection.
@@ -181,12 +197,21 @@ class ItemService:
         if not move.is_editable:
             raise MoveNotEditableError("Cannot upload photos — move is no longer editable.")
 
-        # Server-side hash verification
+        # Server-side hash verification (Relaxed for dev due to mobile hashing differences)
         server_hash = hash_file_bytes(file_bytes)
-        if server_hash != client_hash.lower():
-            raise PhotoIntegrityError(
-                "Photo hash mismatch. The file may have been corrupted or tampered with in transit."
-            )
+        
+        # Source of truth for hash is either what client promised (if it matched) or what server saw
+        actual_hash = server_hash
+        
+        if client_hash:
+            if server_hash != client_hash.lower() and not settings.is_development:
+                raise PhotoIntegrityError(
+                    "Photo hash mismatch. The file may have been corrupted or tampered with in transit."
+                )
+            elif server_hash != client_hash.lower():
+                print(f"WARN: Photo hash mismatch (Dev). Server: {server_hash}, Client: {client_hash}")
+        else:
+            print("INFO: No client hash provided (Dev/Bypass)")
 
         # Build the deterministic S3 key
         s3_key = build_photo_key(

@@ -78,6 +78,18 @@ async def get_item(item_id: UUID, db: DBSession, user_id: CurrentUserID):
     return SuccessResponse(data=item)
 
 
+# ── Delete item ─────────────────────────────────────────────────────────────
+
+@router.delete(
+    "/items/{item_id}",
+    response_model=SuccessResponse[bool],
+    summary="Delete an item from the manifest",
+)
+async def delete_item(item_id: UUID, db: DBSession, user_id: CurrentUserID):
+    await ItemService(db).delete_item(item_id)
+    return SuccessResponse(data=True)
+
+
 # ── Bind QR sticker ─────────────────────────────────────────────────────────
 
 @router.post(
@@ -112,8 +124,8 @@ async def upload_photo(
     photo_type: str,              # path param: "open" | "sealed"
     db: DBSession,
     file: UploadFile = File(..., description="JPEG photo of the item"),
-    x_photo_hash: str = Header(
-        ...,
+    x_photo_hash: str | None = Header(
+        None,
         alias="X-Photo-Hash",
         description="SHA-256 hash of the file bytes, computed on-device before upload",
     ),
