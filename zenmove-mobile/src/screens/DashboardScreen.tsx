@@ -32,6 +32,12 @@ export default function DashboardScreen({ navigation, route }: any) {
         <Text style={styles.statusBadge}>{item.status}</Text>
       </View>
       <Text style={styles.dateText}>{new Date(item.scheduled_at).toDateString()}</Text>
+      
+      {item.eway_bill_no && (
+        <View style={styles.ewayBadge}>
+          <Text style={styles.ewayText}>E-Way: {item.eway_bill_no}</Text>
+        </View>
+      )}
 
       <View style={styles.actionRow}>
         <TouchableOpacity 
@@ -43,11 +49,19 @@ export default function DashboardScreen({ navigation, route }: any) {
         </TouchableOpacity>
         
         <TouchableOpacity 
-          style={[styles.actionBtn, { backgroundColor: '#3B82F6' }]}
-          onPress={() => navigation.navigate('Scanner', { mode: 'load', moveId: item.id })}
+          style={[styles.actionBtn, { backgroundColor: item.status === 'in_transit' ? '#22C55E' : '#3B82F6' }]}
+          onPress={() => {
+            if (item.status === 'in_transit') {
+              navigation.navigate('PackerMoveDetail', { moveId: item.id });
+            } else {
+              navigation.navigate('Scanner', { mode: 'load', moveId: item.id });
+            }
+          }}
         >
           <Truck color="white" size={16} />
-          <Text style={styles.btnText}>Load Truck</Text>
+          <Text style={styles.btnText}>
+            {item.status === 'in_transit' ? 'Unload Truck' : 'Load Truck'}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -98,7 +112,9 @@ const styles = StyleSheet.create({
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
   routeText: { color: 'white', fontSize: 18, fontWeight: '600' },
   statusBadge: { color: '#D97706', fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase' },
-  dateText: { color: '#94A3B8', fontSize: 14, marginBottom: 16 },
+  dateText: { color: '#94A3B8', fontSize: 14, marginBottom: 12 },
+  ewayBadge: { backgroundColor: 'rgba(34, 197, 94, 0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4, alignSelf: 'flex-start', marginBottom: 16, borderLeftWidth: 3, borderLeftColor: '#22C55E' },
+  ewayText: { color: '#22C55E', fontSize: 13, fontWeight: 'bold' },
   actionRow: { flexDirection: 'row', gap: 12 },
   actionBtn: { flex: 1, backgroundColor: '#D97706', padding: 12, borderRadius: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   btnText: { color: 'white', fontWeight: 'bold', fontSize: 14 }

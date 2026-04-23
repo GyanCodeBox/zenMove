@@ -7,7 +7,7 @@ export const BASE_URL = 'http://192.168.1.2:8000/api/v1';
 export const api = axios.create({
   baseURL: BASE_URL,
   headers: {
-    // axios sets Content-Type automatically based on the body
+    'Content-Type': 'application/json',
   },
 });
 

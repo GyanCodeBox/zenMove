@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
 import { api } from '../api/client';
 
@@ -34,6 +35,10 @@ export default function ScannerScreen({ route, navigation }: any) {
         await api.post(`/moves/${moveId}/scan`, { qr_code: data, condition_post: 'good' });
         alert(`Successfully loaded item ${data} onto truck!`);
         setTimeout(() => setScanned(false), 2000); // Reset for next scan
+      } else if (mode === 'unload' && moveId) {
+        await api.post(`/moves/${moveId}/scan`, { qr_code: data, condition_post: 'good' });
+        alert(`Successfully UNLOADED item ${data}. Condition: GOOD`);
+        setTimeout(() => setScanned(false), 2000); 
       }
     } catch (err: any) {
       const detail = err.response?.data?.detail;
@@ -59,11 +64,12 @@ export default function ScannerScreen({ route, navigation }: any) {
         style={styles.camera} 
         facing="back"
         onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
-      >
-        <View style={styles.overlay}>
-          <View style={styles.scanTarget} />
-        </View>
-      </CameraView>
+      />
+      
+      {/* Move overlay outside CameraView as children are deprecated */}
+      <View style={styles.overlay} pointerEvents="none">
+        <View style={styles.scanTarget} />
+      </View>
       {scanned && (
         <TouchableOpacity style={styles.button} onPress={() => setScanned(false)}>
           <Text style={styles.buttonText}>Tap to Scan Again</Text>
@@ -89,8 +95,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
   },

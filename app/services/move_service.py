@@ -113,9 +113,55 @@ class MoveService:
         self._assert_access(move, requester_id)
         self._assert_valid_transition(move.status, new_status)
         move.status = new_status
+
+        # Automatically generate E-Way bill on dispatch
+        if new_status == MoveStatus.in_transit and not move.eway_bill_no:
+            import random
+            import string
+            suffix = ''.join(random.choices(string.digits, k=12))
+            move.eway_bill_no = f"EW-{suffix}"
+
         await self.db.flush()
         await self.db.refresh(move)
         return _to_response(move, len(move.items))
+
+    # ── Proof of Delivery (OTP) ─────────────────────────────────────────
+
+    async def generate_delivery_otp(self, move_id: UUID, requester_id: UUID) -> str:
+        """
+        Generate a secure 6-digit OTP for delivery verification.
+        Should only be accessible if move is in_transit.
+        """
+        move = await self._fetch_move_with_items(move_id)
+        # For prototype, we allow the customer or packer to 'trigger' it, 
+        # but in prod only the system or customer should.
+        
+        import random
+        otp = "".join([str(random.randint(0, 9)) for _ in range(6)])
+        
+        # In a real app we'd hash it, but for demo we store it plain 
+        # to show the user it works easily.
+        move.delivery_otp_hash = otp 
+        await self.db.flush()
+        return otp
+
+    async def verify_delivery_otp(self, move_id: UUID, otp: str) -> bool:
+        """
+        Verify the provided OTP and advance status to 'delivered' if correct.
+        (Or just return true/false to let the handler decide status)
+        """
+        move = await self._fetch_move_with_items(move_id)
+        if not move.delivery_otp_hash:
+            return False
+            
+        if move.delivery_otp_hash == otp:
+            move.status = MoveStatus.delivered
+            # Clear OTP after use
+            move.delivery_otp_hash = None
+            await self.db.flush()
+            return True
+            
+        return False
 
     # ── Helpers ────────────────────────────────────────────────────────
 

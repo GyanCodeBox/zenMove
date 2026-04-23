@@ -12,6 +12,8 @@ export default function PackerMoveDetailScreen({ route, navigation }: any) {
 
   // Form State
   const [newItemName, setNewItemName] = useState('');
+  const [otpInput, setOtpInput] = useState('');
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -67,6 +69,24 @@ export default function PackerMoveDetailScreen({ route, navigation }: any) {
       fetchData();
     } catch (e: any) {
       alert(e.response?.data?.detail || 'Failed to delete item');
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otpInput) return;
+    try {
+      setVerifyingOtp(true);
+      const res = await api.post(`/moves/${moveId}/otp/verify`, { otp: otpInput });
+      if (res.data.data) {
+        alert('OTP VERIFIED! You can now start unloading items.');
+        fetchData();
+      } else {
+        alert('Invalid OTP. Please ask the customer for the correct code.');
+      }
+    } catch (e: any) {
+      alert('Verification failed');
+    } finally {
+      setVerifyingOtp(false);
     }
   };
 
@@ -137,18 +157,41 @@ export default function PackerMoveDetailScreen({ route, navigation }: any) {
         )}
       </View>
 
-      <View style={styles.addItemSection}>
-        <TextInput 
-          style={styles.input} 
-          placeholder="New Item Name (e.g. Sofa)" 
-          placeholderTextColor="#64748B"
-          value={newItemName}
-          onChangeText={setNewItemName}
-        />
-        <TouchableOpacity style={styles.addBtn} onPress={handleAddItem}>
-          <Text style={{color: 'white', fontWeight: 'bold'}}>Add</Text>
-        </TouchableOpacity>
-      </View>
+      {move?.status === 'loading' && (
+        <View style={styles.addItemSection}>
+          <TextInput 
+            style={styles.input} 
+            placeholder="New Item Name (e.g. Sofa)" 
+            placeholderTextColor="#64748B"
+            value={newItemName}
+            onChangeText={setNewItemName}
+          />
+          <TouchableOpacity style={styles.addBtn} onPress={handleAddItem}>
+            <Text style={{color: 'white', fontWeight: 'bold'}}>Add</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {move?.status === 'in_transit' && (
+        <View style={[styles.addItemSection, { backgroundColor: '#1E293B', borderBottomColor: '#22C55E', borderBottomWidth: 2 }]}>
+          <TextInput 
+            style={styles.input} 
+            placeholder="Enter Delivery OTP from Customer" 
+            placeholderTextColor="#64748B"
+            value={otpInput}
+            onChangeText={setOtpInput}
+            keyboardType="numeric"
+            maxLength={6}
+          />
+          <TouchableOpacity 
+            style={[styles.addBtn, { backgroundColor: '#22C55E' }]} 
+            onPress={handleVerifyOtp}
+            disabled={verifyingOtp}
+          >
+            <Text style={{color: 'white', fontWeight: 'bold'}}>{verifyingOtp ? '...' : 'Unlock'}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <FlatList 
         data={items}
@@ -169,6 +212,33 @@ export default function PackerMoveDetailScreen({ route, navigation }: any) {
             >
               <Text style={styles.btnText}>Review & Dispatch Truck</Text>
             </TouchableOpacity>
+          ) : (move?.status === 'delivered' && items.length > 0) ? (
+            <View>
+              <TouchableOpacity 
+                style={[styles.payBtn, { backgroundColor: '#22C55E', marginBottom: 12 }]}
+                onPress={() => navigation.navigate('Scanner', { mode: 'unload', moveId })}
+              >
+                <Text style={styles.btnText}>Scan Out / Unload Items</Text>
+              </TouchableOpacity>
+
+              {/* Only show Finalize if all items are unloaded */}
+              {items.every(i => i.is_unloaded) && (
+                <TouchableOpacity 
+                  style={[styles.payBtn, { backgroundColor: '#D97706', marginBottom: 40 }]}
+                  onPress={async () => {
+                    try {
+                      await api.patch(`/moves/${moveId}/status`, { status: 'completed' });
+                      alert('MOVE COMPLETED! Thank you for the hard work.');
+                      navigation.navigate('PackerDashboard');
+                    } catch (e: any) {
+                      alert('Failed to complete move');
+                    }
+                  }}
+                >
+                  <Text style={styles.btnText}>Finalize & Close Move</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           ) : null
         }
       />

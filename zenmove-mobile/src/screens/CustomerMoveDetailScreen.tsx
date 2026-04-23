@@ -10,6 +10,7 @@ export default function CustomerMoveDetailScreen({ route, navigation }: any) {
   const [escrow, setEscrow] = useState<EscrowStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [deliveryOtp, setDeliveryOtp] = useState<string | null>(null);
 
   useEffect(() => {
     fetchMoveDetails();
@@ -60,6 +61,18 @@ export default function CustomerMoveDetailScreen({ route, navigation }: any) {
       fetchMoveDetails();
     } catch (err: any) {
       alert(err.response?.data?.detail || 'Failed to book move');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleGenerateOTP = async () => {
+    try {
+      setActionLoading(true);
+      const res = await api.post(`/moves/${moveId}/otp/generate`);
+      setDeliveryOtp(res.data.data);
+    } catch (err: any) {
+      alert('Failed to generate OTP');
     } finally {
       setActionLoading(false);
     }
@@ -156,6 +169,28 @@ export default function CustomerMoveDetailScreen({ route, navigation }: any) {
           </View>
         )}
 
+        {move.status === 'in_transit' && (
+          <View style={[styles.card, { marginTop: 24, backgroundColor: '#1E293B', borderColor: '#3B82F6', borderWidth: 1 }]}>
+            <Text style={styles.title}>Proof of Delivery</Text>
+            <Text style={{ color: '#94A3B8', marginBottom: 16 }}>Give this code to the driver only when they arrive at your destination.</Text>
+            
+            {deliveryOtp ? (
+              <View style={styles.otpBox}>
+                <Text style={styles.otpLabel}>YOUR DELIVERY OTP</Text>
+                <Text style={styles.otpValue}>{deliveryOtp}</Text>
+              </View>
+            ) : (
+              <TouchableOpacity 
+                style={[styles.payBtn, { backgroundColor: '#3B82F6' }]} 
+                onPress={handleGenerateOTP}
+                disabled={actionLoading}
+              >
+                <Text style={styles.btnText}>Generate Delivery OTP</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -173,5 +208,8 @@ const styles = StyleSheet.create({
   label: { color: '#94A3B8', fontSize: 12, textTransform: 'uppercase', fontWeight: 'bold', marginBottom: 4 },
   value: { color: 'white', fontSize: 18, fontWeight: '600' },
   payBtn: { backgroundColor: '#D97706', padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 16 },
-  btnText: { color: 'white', fontSize: 16, fontWeight: 'bold' }
+  btnText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
+  otpBox: { backgroundColor: '#0F172A', padding: 24, borderRadius: 12, alignItems: 'center', borderStyle: 'dashed', borderWidth: 2, borderColor: '#3B82F6' },
+  otpLabel: { color: '#3B82F6', fontSize: 12, fontWeight: 'bold', marginBottom: 8 },
+  otpValue: { color: 'white', fontSize: 42, fontWeight: 'bold', letterSpacing: 8 }
 });

@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Camera, RefreshCcw, Check, X } from 'lucide-react-native';
 import * as FileSystem from 'expo-file-system';
@@ -111,16 +112,21 @@ export default function PhotoCaptureScreen({ route, navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <CameraView style={styles.camera} ref={cameraRef} facing="back">
-        <View style={styles.overlay}>
+      <CameraView style={styles.camera} ref={cameraRef} facing="back" />
+
+      <View style={styles.overlay} pointerEvents="box-none">
+        <View style={styles.guideContainer}>
           <Text style={styles.guideText}>
-            Take {photoType === 'open' ? 'OPEN CONTENTS' : 'SEALED BOX'} photo
+            {photoType === 'open' ? 'Center items in view' : 'Align box in frame'}
           </Text>
+        </View>
+
+        <View style={styles.controls}>
           <TouchableOpacity style={styles.captureBtn} onPress={takePicture}>
             <View style={styles.captureInner} />
           </TouchableOpacity>
         </View>
-      </CameraView>
+      </View>
     </View>
   );
 }
@@ -129,9 +135,14 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'black' },
   center: { flex: 1, backgroundColor: '#0F172A', justifyContent: 'center', alignItems: 'center' },
   camera: { flex: 1 },
-  overlay: { flex: 1, backgroundColor: 'transparent', justifyContent: 'flex-end', alignItems: 'center', paddingBottom: 40 },
+  overlay: { 
+    ...StyleSheet.absoluteFillObject, 
+    justifyContent: 'space-between', 
+    padding: 24 
+  },
+  guideContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   guideText: { color: 'white', backgroundColor: 'rgba(0,0,0,0.6)', padding: 12, borderRadius: 8, marginBottom: 20, fontSize: 16, fontWeight: 'bold' },
-  captureBtn: { width: 80, height: 80, borderRadius: 40, borderWidth: 4, borderColor: 'white', justifyContent: 'center', alignItems: 'center' },
+  captureBtn: { width: 80, height: 80, borderRadius: 40, borderWidth: 4, borderColor: 'white', justifyContent: 'center', alignItems: 'center', alignSelf: 'center', marginBottom: 40 },
   captureInner: { width: 64, height: 64, borderRadius: 32, backgroundColor: 'white' },
   preview: { flex: 1, resizeMode: 'cover' },
   controls: { flexDirection: 'row', justifyContent: 'space-evenly', padding: 40, position: 'absolute', bottom: 0, left: 0, right: 0 },
