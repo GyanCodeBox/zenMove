@@ -53,8 +53,16 @@ class MoveService:
     async def create_move(
         self, customer_id: UUID, payload: MoveCreateRequest
     ) -> MoveResponse:
+        # For the Phase 2 simulation, we auto-assign the first packer/vendor found.
+        # In production (Phase 3), this happens after the Bidding Engine completes.
+        from app.models.user import User
+        vendor = await self.db.execute(select(User).where(User.role.in_(['vendor', 'packer'])).limit(1))
+        vendor_user = vendor.scalar_one_or_none()
+        vendor_id = vendor_user.id if vendor_user else None
+
         move = Move(
             customer_id=customer_id,
+            vendor_id=vendor_id,
             origin_address=payload.origin_address,
             dest_address=payload.dest_address,
             origin_city_code=payload.origin_city_code,
