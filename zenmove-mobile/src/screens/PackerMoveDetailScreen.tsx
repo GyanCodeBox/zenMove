@@ -182,24 +182,21 @@ export default function PackerMoveDetailScreen({ route, navigation }: any) {
 
       {move?.status === 'loading' && (
         <View style={styles.addItemSection}>
-          <TextInput 
-            style={styles.input} 
-            placeholder="New Item Name (e.g. Sofa)" 
-            placeholderTextColor="#64748B"
-            value={newItemName}
-            onChangeText={setNewItemName}
-          />
-          <TouchableOpacity style={styles.addBtn} onPress={handleAddItem}>
-            <Text style={{color: 'white', fontWeight: 'bold'}}>Add</Text>
+          <TouchableOpacity 
+            style={[styles.addBtn, { paddingVertical: 20, backgroundColor: '#3B82F6' }]} 
+            onPress={() => navigation.navigate('Scanner', { mode: 'rapid_pack', moveId })}
+          >
+            <Text style={{color: 'white', fontWeight: 'bold', fontSize: 16}}>Scan & Pack Items (Super Fast Mode)</Text>
           </TouchableOpacity>
         </View>
       )}
 
       {move?.status === 'in_transit' && (
         <View style={[styles.addItemSection, { backgroundColor: '#1E293B', borderBottomColor: '#22C55E', borderBottomWidth: 2 }]}>
+          <Text style={{color: 'white', fontWeight: 'bold', fontSize: 16, marginBottom: 12}}>Destination Arrived</Text>
           <TextInput 
             style={styles.input} 
-            placeholder="Enter Delivery OTP" 
+            placeholder="Enter Delivery OTP from Customer" 
             placeholderTextColor="#64748B"
             value={otpInput}
             onChangeText={setOtpInput}
@@ -211,7 +208,7 @@ export default function PackerMoveDetailScreen({ route, navigation }: any) {
             onPress={handleVerifyOtp}
             disabled={verifyingOtp}
           >
-            <Text style={{color: 'white', fontWeight: 'bold'}}>{verifyingOtp ? '...' : 'Unlock'}</Text>
+            <Text style={{color: 'white', fontWeight: 'bold', fontSize: 16}}>{verifyingOtp ? '...' : 'Unlock Unloading Phase'}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -229,19 +226,28 @@ export default function PackerMoveDetailScreen({ route, navigation }: any) {
         }
         ListFooterComponent={
           (move?.status === 'loading' && items.length > 0) ? (
-            <TouchableOpacity 
-              style={[styles.payBtn, { backgroundColor: '#D97706', marginBottom: 40 }]}
-              onPress={() => navigation.navigate('DispatchSummary', { moveId, items })}
-            >
-              <Text style={styles.btnText}>Review & Dispatch Truck</Text>
-            </TouchableOpacity>
+            <View>
+              <TouchableOpacity 
+                style={[styles.payBtn, { backgroundColor: '#22C55E', marginBottom: 12 }]}
+                onPress={() => navigation.navigate('Scanner', { mode: 'load', moveId })}
+              >
+                <Text style={styles.btnText}>Quick Scan Onto Truck</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={[styles.payBtn, { backgroundColor: '#D97706', marginBottom: 40 }]}
+                onPress={() => navigation.navigate('DispatchSummary', { moveId, items })}
+              >
+                <Text style={styles.btnText}>Review & Dispatch Truck</Text>
+              </TouchableOpacity>
+            </View>
           ) : (move?.status === 'delivered' && items.length > 0) ? (
             <View>
               <TouchableOpacity 
                 style={[styles.payBtn, { backgroundColor: '#22C55E', marginBottom: 12 }]}
                 onPress={() => navigation.navigate('Scanner', { mode: 'unload', moveId })}
               >
-                <Text style={styles.btnText}>Scan Out / Unload Items</Text>
+                <Text style={styles.btnText}>Quick Scan Out / Unload Items</Text>
               </TouchableOpacity>
               {items.every(i => i.is_unloaded) && (
                 <TouchableOpacity 
