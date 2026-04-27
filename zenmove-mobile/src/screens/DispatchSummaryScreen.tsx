@@ -9,7 +9,7 @@ export default function DispatchSummaryScreen({ route, navigation }: any) {
 
   const totalItems = items.length;
   const loadedItems = items.filter((i: any) => i.is_loaded).length;
-  const photoCompleteCount = items.filter((i: any) => i.is_photo_complete || (i.open_photo_key && i.sealed_photo_key)).length;
+  const photoCompleteCount = items.filter((i: any) => i.is_photo_complete || i.open_photo_key || i.sealed_photo_key).length;
 
   const handleDispatch = async () => {
     try {
