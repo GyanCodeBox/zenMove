@@ -4,15 +4,18 @@ app/api/v1/endpoints/moves.py
 Move CRUD and status transition endpoints.
 """
 
+from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
 
 from app.core.dependencies import CurrentUserID, DBSession, PaginationDep
 from app.models.move import MoveStatus
 from app.schemas.common import PaginatedResponse, SuccessResponse
-from app.schemas.move import MoveCreateRequest, MoveResponse, MoveStatusUpdateRequest
+from app.schemas.move import MoveCreateRequest, MoveResponse, MoveStatusUpdateRequest, OTPVerifyRequest
+from app.schemas.item import ManifestSummary
 from app.services.move_service import MoveService
+from app.services.item_service import ItemService
 
 router = APIRouter(prefix="/moves", tags=["Moves"])
 
@@ -76,3 +79,44 @@ async def update_move_status(
 ):
     move = await MoveService(db).update_status(move_id, payload.status, user_id)
     return SuccessResponse(data=move)
+
+
+# ── Proof of Delivery (OTP) ───────────────────────────────────────────────
+
+@router.post(
+    "/{move_id}/otp/generate",
+    response_model=SuccessResponse[str],
+    summary="Generate delivery OTP (Customer/System only)",
+)
+async def generate_otp(move_id: UUID, db: DBSession, user_id: CurrentUserID):
+    otp = await MoveService(db).generate_delivery_otp(move_id, user_id)
+    return SuccessResponse(data=otp)
+
+
+@router.post(
+    "/{move_id}/otp/verify",
+    response_model=SuccessResponse[bool],
+    summary="Verify delivery OTP and unlock manifest",
+)
+async def verify_otp(
+    move_id: UUID,
+    payload: OTPVerifyRequest,
+    db: DBSession,
+    user_id: CurrentUserID,
+):
+    valid = await MoveService(db).verify_delivery_otp(move_id, payload.otp)
+    return SuccessResponse(data=valid)
+
+
+@router.get(
+    "/{move_id}/manifest",
+    response_model=SuccessResponse[ManifestSummary],
+    summary="Generate and get the PDF manifest report",
+)
+async def get_move_manifest(
+    move_id: UUID,
+    db: DBSession,
+    user_id: CurrentUserID,
+):
+     summary = await ItemService(db).generate_manifest(move_id)
+     return SuccessResponse(data=summary)

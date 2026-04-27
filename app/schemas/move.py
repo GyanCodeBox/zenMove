@@ -39,6 +39,9 @@ class MoveCreateRequest(ZenBaseModel):
 class MoveStatusUpdateRequest(ZenBaseModel):
     status: MoveStatus
 
+class OTPVerifyRequest(ZenBaseModel):
+    otp: str
+
 
 # ── Response schemas ───────────────────────────────────────────────────────
 

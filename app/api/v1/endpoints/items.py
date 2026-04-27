@@ -69,6 +69,15 @@ async def list_items(
 # ── Get single item ─────────────────────────────────────────────────────────
 
 @router.get(
+    "/items/by-qr/{qr_code}",
+    response_model=SuccessResponse[ItemResponse],
+    summary="Get a single item by its assigned QR code sticker",
+)
+async def get_item_by_qr(qr_code: str, db: DBSession, user_id: CurrentUserID):
+    item = await ItemService(db).get_item_by_qr(qr_code)
+    return SuccessResponse(data=item)
+
+@router.get(
     "/items/{item_id}",
     response_model=SuccessResponse[ItemResponse],
     summary="Get a single item by ID",
@@ -76,6 +85,18 @@ async def list_items(
 async def get_item(item_id: UUID, db: DBSession, user_id: CurrentUserID):
     item = await ItemService(db).get_item(item_id)
     return SuccessResponse(data=item)
+
+
+# ── Delete item ─────────────────────────────────────────────────────────────
+
+@router.delete(
+    "/items/{item_id}",
+    response_model=SuccessResponse[bool],
+    summary="Delete an item from the manifest",
+)
+async def delete_item(item_id: UUID, db: DBSession, user_id: CurrentUserID):
+    await ItemService(db).delete_item(item_id)
+    return SuccessResponse(data=True)
 
 
 # ── Bind QR sticker ─────────────────────────────────────────────────────────
@@ -112,8 +133,8 @@ async def upload_photo(
     photo_type: str,              # path param: "open" | "sealed"
     db: DBSession,
     file: UploadFile = File(..., description="JPEG photo of the item"),
-    x_photo_hash: str = Header(
-        ...,
+    x_photo_hash: str | None = Header(
+        None,
         alias="X-Photo-Hash",
         description="SHA-256 hash of the file bytes, computed on-device before upload",
     ),

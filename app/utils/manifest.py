@@ -108,10 +108,11 @@ def generate_manifest_pdf(move: "Move", items: list["Item"]) -> bytes:
         ["To",            move.dest_address],
         ["Scheduled",     move.scheduled_at.strftime("%d %b %Y")],
         ["Status",        move.status.value.upper()],
+        ["E-Way Bill",    move.eway_bill_no or "PENDING"],
         ["Generated At",  generated_at],
         ["Total Items",   str(len(items))],
     ]
-    meta_table = Table(meta_data, colWidths=[45 * mm, 130 * mm])
+    meta_table = Table(meta_data, colWidths=[45 * mm, 131 * mm])
     meta_table.setStyle(TableStyle([
         ("FONTNAME",    (0, 0), (0, -1), "Helvetica-Bold"),
         ("FONTSIZE",    (0, 0), (-1, -1), 9),
