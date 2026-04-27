@@ -21,5 +21,5 @@ def create_test_stickers(city="BLR", count=5):
         print(f"  [+] Saved {filename}")
 
 if __name__ == "__main__":
-    create_test_stickers()
+    create_test_stickers(city="MUM", count=10)
     print("\nDone! You can find the QR images in the 'test_stickers' folder.")

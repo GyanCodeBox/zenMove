@@ -14,6 +14,7 @@ export default function ScannerScreen({ route, navigation }: any) {
   // Super Fast Mode states
   const [step, setStep] = useState<'qr' | 'photo'>('qr');
   const [currentQr, setCurrentQr] = useState('');
+  const [processedQrs, setProcessedQrs] = useState<Set<string>>(new Set());
   const [itemsAdded, setItemsAdded] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [toast, setToast] = useState('');
@@ -44,6 +45,12 @@ export default function ScannerScreen({ route, navigation }: any) {
 
     try {
       if (mode === 'rapid_pack' && moveId) {
+        if (processedQrs.has(data)) {
+          showToast(`Already scanned: ${data}`);
+          setTimeout(() => setScanned(false), 1500);
+          return;
+        }
+        
         // STEP 1: Scan QR -> Instant switch to camera mode
         setCurrentQr(data);
         setStep('photo');
@@ -104,6 +111,8 @@ export default function ScannerScreen({ route, navigation }: any) {
 
   const handleTakeRapidPhoto = async () => {
     if (!cameraRef.current || uploading) return;
+    let newItemId = null;
+    
     try {
       setUploading(true);
       const pic = await cameraRef.current.takePictureAsync({ quality: 0.5, base64: true });
@@ -112,25 +121,22 @@ export default function ScannerScreen({ route, navigation }: any) {
       // 1. implicitly create item
       const itemRes = await api.post(`/moves/${moveId}/items`, {
         name: `Box #${itemsAdded + 1}`,
-        volume_cft: 2.0,
-        has_photos: true,
-        condition_pre: 'good',
-        is_high_risk: false
+        condition_pre: 'good'
       });
-      const newItem = itemRes.data.data;
+      newItemId = itemRes.data.data.id;
 
       // 2. bind QR
-      await api.post(`/items/${newItem.id}/bind-qr`, { qr_code: currentQr, tag_tier: 'PVC' });
+      await api.post(`/items/${newItemId}/bind-qr`, { qr_code: currentQr, tag_tier: 'PVC' });
 
       // 3. sync photo
       const formData = new FormData();
       // @ts-ignore
       formData.append('file', {
         uri: pic.uri,
-        name: `${newItem.id}_sealed.jpg`,
+        name: `${newItemId}_sealed.jpg`,
         type: 'image/jpeg',
       });
-      const uploadUrl = `${api.defaults.baseURL}/items/${newItem.id}/photos/sealed`;
+      const uploadUrl = `${api.defaults.baseURL}/items/${newItemId}/photos/sealed`;
       const authHeader = api.defaults.headers.common['Authorization'];
 
       const response = await fetch(uploadUrl, {
@@ -142,12 +148,22 @@ export default function ScannerScreen({ route, navigation }: any) {
       if (!response.ok) throw new Error("Photo upload failed");
 
       // Success -> Reset step to QR -> Show lightweight toast -> Bump count
+      setProcessedQrs(prev => new Set(prev).add(currentQr));
       setItemsAdded(prev => prev + 1);
       showToast("✅ Item Added");
       setStep('qr');
       
     } catch (e: any) {
-      alert("Failed to save item: " + e.message);
+      if (e.response?.status === 409) {
+          showToast(`QR Already Bound! Removing ghost item...`);
+      } else {
+          showToast("Failed to save item.");
+      }
+      
+      if (newItemId) {
+          try { await api.delete(`/items/${newItemId}`); } catch (_) {}
+      }
+      
       setStep('qr');
     } finally {
       setUploading(false);
