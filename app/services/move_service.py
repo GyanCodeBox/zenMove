@@ -131,6 +131,8 @@ class MoveService:
             try:
                 ewb_svc = EWayBillService(self.db)
                 await ewb_svc.generate(move_id, EWayBillGenerateRequest(
+                    gstin_supplier="29ABCDE1234F1Z5", # Mock vendor GSTIN
+                    gstin_recipient="27ABCDE1234F1Z5", # Mock customer GSTIN
                     vehicle_no="KA-01-ZM-1234", # Mock vehicle
                     distance_km=250, # Mock distance
                     total_value=float(move.quote_amount)
