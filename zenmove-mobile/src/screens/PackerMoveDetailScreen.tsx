@@ -192,24 +192,26 @@ export default function PackerMoveDetailScreen({ route, navigation }: any) {
       )}
 
       {move?.status === 'in_transit' && (
-        <View style={[styles.addItemSection, { backgroundColor: '#1E293B', borderBottomColor: '#22C55E', borderBottomWidth: 2 }]}>
-          <Text style={{color: 'white', fontWeight: 'bold', fontSize: 16, marginBottom: 12}}>Destination Arrived</Text>
-          <TextInput 
-            style={styles.input} 
-            placeholder="Enter Delivery OTP from Customer" 
-            placeholderTextColor="#64748B"
-            value={otpInput}
-            onChangeText={setOtpInput}
-            keyboardType="numeric"
-            maxLength={6}
-          />
-          <TouchableOpacity 
-            style={[styles.addBtn, { backgroundColor: '#22C55E' }]} 
-            onPress={handleVerifyOtp}
-            disabled={verifyingOtp}
-          >
-            <Text style={{color: 'white', fontWeight: 'bold', fontSize: 16}}>{verifyingOtp ? '...' : 'Unlock Unloading Phase'}</Text>
-          </TouchableOpacity>
+        <View style={{ padding: 20, backgroundColor: '#1E293B', borderBottomColor: '#22C55E', borderBottomWidth: 2 }}>
+          <Text style={{color: 'white', fontWeight: 'bold', fontSize: 16, marginBottom: 12}}>Destination Arrived & Ready to Unload</Text>
+          <View style={{ flexDirection: 'row' }}>
+            <TextInput 
+              style={styles.input} 
+              placeholder="Enter Delivery OTP from Customer" 
+              placeholderTextColor="#64748B"
+              value={otpInput}
+              onChangeText={setOtpInput}
+              keyboardType="numeric"
+              maxLength={6}
+            />
+            <TouchableOpacity 
+              style={[styles.addBtn, { backgroundColor: '#22C55E' }]} 
+              onPress={handleVerifyOtp}
+              disabled={verifyingOtp}
+            >
+              <Text style={{color: 'white', fontWeight: 'bold', fontSize: 16}}>{verifyingOtp ? '...' : 'Unlock'}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
 
